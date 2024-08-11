@@ -13,7 +13,7 @@ services:
       - '81:81'
       - '443:443'
     environment:
-      DB_MYSQL_HOST: "db"
+      DB_MYSQL_HOST: "nginxproxymanager-db"  # Updated to match the service name
       DB_MYSQL_PORT: 3306
       DB_MYSQL_USER: "npm"
       DB_MYSQL_PASSWORD: "npm"
@@ -21,6 +21,8 @@ services:
     volumes:
       - nginxproxymanager-data:/data
       - nginxproxymanager-ssl:/etc/letsencrypt
+    networks:
+      - default
 
   nginxproxymanager-db:
     image: 'jc21/mariadb-aria:latest'
@@ -31,3 +33,9 @@ services:
       MYSQL_PASSWORD: 'npm'
     volumes:
       - nginxproxymanager-db:/var/lib/mysql
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
