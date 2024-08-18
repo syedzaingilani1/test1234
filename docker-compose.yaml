@@ -1,41 +1,28 @@
 version: '3'
 
-volumes:
-  nginxproxymanager-data:
-  nginxproxymanager-ssl:
-  nginxproxymanager-db:
-
 services:
-  nginxproxymanager:
-    image: 'jc21/nginx-proxy-manager:latest'
+  db:
+    image: mariadb:latest
+    container_name: npm_db
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: nginxproxymanager
+      MYSQL_USER: nginxproxymanager
+      MYSQL_PASSWORD: nginxproxymanager
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    restart: always
+
+  app:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    depends_on:
+      - db
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    environment:
-      DB_MYSQL_HOST: "nginxproxymanager-db"  # Updated to match the service name
-      DB_MYSQL_PORT: 3306
-      DB_MYSQL_USER: "npm"
-      DB_MYSQL_PASSWORD: "npm"
-      DB_MYSQL_NAME: "npm"
+      - "80:80"
+      - "81:81"
+      - "443:443"
     volumes:
-      - nginxproxymanager-data:/data
-      - nginxproxymanager-ssl:/etc/letsencrypt
-    networks:
-      - default
-
-  nginxproxymanager-db:
-    image: 'jc21/mariadb-aria:latest'
-    environment:
-      MYSQL_ROOT_PASSWORD: 'npm'
-      MYSQL_DATABASE: 'npm'
-      MYSQL_USER: 'npm'
-      MYSQL_PASSWORD: 'npm'
-    volumes:
-      - nginxproxymanager-db:/var/lib/mysql
-    networks:
-      - default
-
-networks:
-  default:
-    driver: bridge
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    restart: always
